@@ -81,8 +81,10 @@ def list_tasks():
 
 
 @app.post("/reset", response_model=ResetResult)
-def reset(request: ResetRequest):
+def reset(request: Optional[ResetRequest] = None):
     global _env
+    if request is None:
+        request = ResetRequest()
     try:
         _env = CyberTriageEnvironment(task_id=request.task_id, seed=request.seed)
         result = _env.reset()
