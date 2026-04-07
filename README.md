@@ -1,3 +1,14 @@
+---
+title: Cyber Triage Env
+emoji: 🛡️
+colorFrom: red
+colorTo: gray
+sdk: docker
+app_port: 7860
+tags:
+  - openenv
+---
+
 # 🛡️ Cyber Threat Intelligence Triage Environment
 
 **An OpenEnv-compliant RL environment simulating a Security Operations Center (SOC) analyst.**
@@ -8,7 +19,7 @@
 
 ---
 
-## 🌍 Overview & Motivation
+## Overview & Motivation
 
 Security Operations Centers handle **1,000–10,000 alerts per day**, with up to 70% being false positives. Analyst burnout is a crisis — there is a global shortage of 3.5 million cybersecurity professionals. Training AI agents to triage security alerts accurately and efficiently is a **multi-billion dollar problem** actively pursued by CrowdStrike, Palo Alto Networks, Microsoft, and every major defense contractor.
 
@@ -23,7 +34,7 @@ This environment places an RL agent in the role of a SOC analyst, requiring it t
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 cyber-triage-env/
@@ -49,7 +60,7 @@ cyber-triage-env/
 
 ---
 
-## 📡 API Reference (OpenEnv Spec)
+## API Reference (OpenEnv Spec)
 
 ### `POST /reset`
 Start a new episode.
@@ -94,7 +105,7 @@ Health check — returns `{"status": "ok"}`.
 
 ---
 
-## 🔭 Observation Space
+##  Observation Space
 
 ```
 CyberTriageObservation:
@@ -131,7 +142,7 @@ ThreatIntel:
 
 ---
 
-## 🎮 Action Space
+##  Action Space
 
 ```
 CyberTriageAction:
@@ -145,7 +156,7 @@ CyberTriageAction:
 
 ---
 
-## 🎯 Tasks
+##  Tasks
 
 ### Task 1: Easy — Single Alert Triage
 - **Objective:** Correctly triage one alert with clear indicators
@@ -170,7 +181,7 @@ CyberTriageAction:
 
 ---
 
-## 💰 Reward Function
+## Reward Function
 
 Rewards are computed per-step with partial credit for each component:
 
@@ -191,7 +202,7 @@ Episode score range: `[0.0, 1.0]`
 
 ---
 
-## 🚀 Setup & Usage
+##  Setup & Usage
 
 ### Option 1: Local Python
 
@@ -259,7 +270,7 @@ curl http://localhost:7860/state
 
 ---
 
-## 📊 Baseline Scores (gpt-4.1-mini)
+##  Baseline Scores (gpt-4.1-mini)
 
 | Task   | Score  | Pass (≥0.6) |
 |--------|--------|-------------|
@@ -270,7 +281,7 @@ curl http://localhost:7860/state
 
 ---
 
-## 🔧 Environment Variables
+##  Environment Variables
 
 | Variable      | Default                        | Required |
 |---------------|--------------------------------|----------|
@@ -300,6 +311,6 @@ curl http://localhost:7860/state
 
 ---
 
-## 📄 License
+## License
 
 MIT
