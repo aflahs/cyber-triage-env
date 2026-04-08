@@ -3,36 +3,25 @@
 
 FROM python:3.11-slim
 
-# HF Spaces runs as user 1000
-RUN useradd -m -u 1000 appuser
+# Create non-root user (HF Spaces requirement)
+RUN useradd -m -u 1000 user
+USER user
+ENV PATH="/home/user/.local/bin:$PATH"
 
 WORKDIR /app
 
-# Install dependencies first (layer caching)
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Install dependencies first (cache layer)
+COPY --chown=user ./requirements.txt requirements.txt
+RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
-# Copy project files
-COPY env/           ./env/
-COPY data/          ./data/
-COPY server.py      .
-COPY inference.py   .
-COPY openenv.yaml   .
+# Copy application code
+COPY --chown=user . /app
 
-# Set ownership
-RUN chown -R appuser:appuser /app
-USER appuser
+# Install the package
+RUN pip install --no-cache-dir -e .
 
 # Hugging Face Spaces uses port 7860
 EXPOSE 7860
 
-# Environment variable defaults (override at runtime)
-ENV PORT=7860
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-  CMD python -c "import requests; requests.get('http://localhost:7860/health').raise_for_status()"
-
-CMD ["python", "server.py"]
+# Start the server
+CMD ["uvicorn", "cyber_triage_env.server.app:app", "--host", "0.0.0.0", "--port", "7860"]
