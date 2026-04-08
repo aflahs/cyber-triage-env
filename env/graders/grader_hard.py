@@ -17,8 +17,8 @@ Scoring is harsh on false negatives (dismissing true APT indicators).
 from __future__ import annotations
 from typing import Any, Dict, List, Tuple
 
-from cyber_triage_env.reward import compute_reward
-from cyber_triage_env.models import CyberTriageAction
+from env.reward import compute_reward
+from env.models import CyberTriageAction
 
 
 # APT pattern stages for bonus scoring

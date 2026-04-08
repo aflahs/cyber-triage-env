@@ -8,8 +8,8 @@ Bonus points for recognizing the attack campaign pattern across alerts.
 from __future__ import annotations
 from typing import Any, Dict, List
 
-from cyber_triage_env.reward import compute_reward
-from cyber_triage_env.models import CyberTriageAction
+from env.reward import compute_reward
+from env.models import CyberTriageAction
 
 
 # Campaign correlation bonus: if agent escalates the right alert in a chain

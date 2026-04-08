@@ -11,8 +11,8 @@ Scoring:
 from __future__ import annotations
 from typing import Any, Dict, List
 
-from cyber_triage_env.reward import compute_reward
-from cyber_triage_env.models import CyberTriageAction
+from env.reward import compute_reward
+from env.models import CyberTriageAction
 
 
 def grade(
